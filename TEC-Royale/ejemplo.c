@@ -1,169 +1,50 @@
-#include "mypthreads.h"
 #include <stdio.h>
-#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 
-void thread1()
+#include <mypthread.h>
+
+//numero de hilos, se puede definir desde una funcion
+#define NTHREADS	8
+
+/*
+ * aumenta el contador en 50,
+ * cuando tiene el control de regreso le suma otros 50 y sale
+ */
+void *thread_func(void *arg)
 {
-	int i;
-	for ( i = 0; i < 5; ++ i )
-	{
-		printf( "Hey, I'm thread #1: %d\n", i );
-		my_thread_yield();
-	}
-	return;
+	int *count = (int *)arg;
+
+	*count = *count + 50;
+	LOG_PRINTF("Thread %ld: Incremented count by 50 and will now yield\n", (unsigned long)mythread_self().tid);
+	mythread_yield();
+	*count = *count + 50;
+	LOG_PRINTF("Thread %ld: Incremented count by 50 and will now exit\n", (unsigned long)mythread_self().tid);
+	mythread_end(NULL);
+	return NULL;
 }
 
-void thread2()
-{
-	int i;
-	for ( i = 0; i < 5; ++ i )
-	{
-		printf( "Hey, I'm thread #2: %d\n", i );
-		my_thread_yield();
-	}
-	return;
-}
-
-void thread3()
-{
-	int i;
-	for ( i = 0; i < 5; ++ i )
-	{
-		printf( "Hey, I'm thread #3: %d\n", i );
-		my_thread_yield();
-	}
-	return;
-}
-
-void thread4()
-{
-	int i;
-	for ( i = 0; i < 5; ++ i )
-	{
-		printf( "Hey, I'm thread #4: %d\n", i );
-		my_thread_yield();
-	}
-	return;
-}
-
-void thread5()
-{
-	int i;
-	for ( i = 0; i < 5; ++ i )
-	{
-		printf( "Hey, I'm thread #5: %d\n", i );
-		my_thread_yield();
-	}
-	return;
-}
-
-void thread6()
-{
-	int i;
-	for ( i = 0; i < 5; ++ i )
-	{
-		printf( "Hey, I'm thread #6: %d\n", i );
-		my_thread_yield();
-	}
-	return;
-}
-
-void thread7()
-{
-	int i;
-	for ( i = 0; i < 5; ++ i )
-	{
-		printf( "Hey, I'm thread #7: %d\n", i );
-		my_thread_yield();
-	}
-	return;
-}
-
-void thread8()
-{
-	int i;
-	for ( i = 0; i < 5; ++ i )
-	{
-		printf( "Hey, I'm thread #8: %d\n", i );
-		my_thread_yield();
-	}
-	return;
-}
-
-void thread9()
-{
-	int i;
-	for ( i = 0; i < 5; ++ i )
-	{
-		printf( "Hey, I'm thread #9: %d\n", i );
-		my_thread_yield();
-	}
-	return;
-}
-
-void thread10()
-{
-	int i;
-	for ( i = 0; i < 5; ++ i )
-	{
-		printf( "Hey, I'm thread #10: %d\n", i );
-		my_thread_yield();
-	}
-	return;
-}
-
-void fibonacchi()
-{
-	int i;
-	int fib[2] = { 0, 1 };
-	
-	/*sleep( 2 ); */
-	printf( "fibonacchi(0) = 0\nfibonnachi(1) = 1\n" );
-	for( i = 2; i < 15; ++ i )
-	{
-		int nextFib = fib[0] + fib[1];
-		printf( "fibonacchi(%d) = %d\n", i, nextFib );
-		fib[0] = fib[1];
-		fib[1] = nextFib;
-		my_thread_yield();
-	}
-}
-
-void squares()
-{
-	int i;
-	
-	/*sleep( 5 ); */
-	for ( i = 0; i < 10; ++ i )
-	{
-		printf( "%d*%d = %d\n", i, i, i*i );
-		my_thread_yield();
-	}
-}
-
+/*
+ * ejemplo de uso de la biblioteca
+ */
 int main()
 {
-	//crear hilos
-	my_thread_create();
-	
-	//asignar hilos
-	//apenas asigno comienzan a ejecutar
-	//si se asigna mas del limite entonces no ejecuta ni asigna
-	//los que se quedaron sin hilos
-	my_thread_join( &thread1 );
-	my_thread_join( &thread2 );
-	my_thread_join( &thread3 );
-	my_thread_join( &thread4 );
-	my_thread_join( &thread5 );
-	my_thread_join( &thread6 );
-	my_thread_join( &thread7 );
-	my_thread_join( &thread8 );
-	my_thread_join( &thread9 );
-	my_thread_join( &fibonacchi );
-	my_thread_join( &squares );
+	mythread_t threads[NTHREADS];
+	int count[NTHREADS];
+	int i;
+	char *status;
 
-	//espera que todos terminen para liberar la memoria
-	my_thread_end();
-	
+	for (i = 0; i < NTHREADS; i++) {
+		count[i] = i;
+		mythread_create(&threads[i], NULL, thread_func, &count[i]);
+	}
+	for (i = 0; i < NTHREADS; i++) {
+		LOG_PRINTF("Main: Will now wait for thread %ld. Yielding..\n", (unsigned long)threads[i].tid);
+		mythread_join(threads[i], (void **)&status);
+		LOG_PRINTF("Main: Thread %ld exited and increment count to %d\n", (unsigned long)threads[i].tid, count[i]);
+	}
+	LOG_PRINTF("Main: All threads completed execution. Will now exit..\n");
+	mythread_end(NULL);
+
 	return 0;
 }

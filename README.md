@@ -3,9 +3,9 @@
 ## Estudiantes: Jason David Espinoza - 2015073934, Jose Miguel Hernandez - 2015079760
 
 ### Version 0.1
-Se tiene todas las funcionalidades basica de la biblioteca mypthread
+Se tiene todas las funcionalidades de la biblioteca mypthread
 
-Falta hacer diferentes tipos de scheduling, ya que solo tiene FIFO y modificar makefile por uno mas sencillo
+Falta 2 algoritmos de scheduling: RoundRobin, Tiempo Real
 
 ### Bibliografia
 

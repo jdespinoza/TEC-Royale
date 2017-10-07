@@ -49,7 +49,7 @@ void mythread_q_delete(mythread_private_t * node)
 	mythread_private_t *p;
 	if (node == mythread_q_head && node->next == mythread_q_head) {
 		//There is only a single node and it is being deleted
-		printf("The Q is now Empty!\n");
+		printf("The Queue is now Empty!\n");
 		mythread_q_head = NULL;
 	}
 
@@ -74,7 +74,7 @@ void mythread_q_state_display()
 	if (mythread_q_head != NULL) {
 
 		//display the Q - for debug purposes
-		printf("\n The Q contents are -> \n");
+		printf("\n The Queue contents are -> \n");
 		mythread_private_t *p;
 		p = mythread_q_head;
 		do {		//traverse to the last node in Q

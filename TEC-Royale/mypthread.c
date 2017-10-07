@@ -29,12 +29,30 @@ mythread_t idle_u_tcb;
 //gfutex se hace global para evitar una carrera entre hilos por los recursos
 struct mutex gfutex;
 
+int scheduler;
+
+int number_thread;
+
+int threads_checked[NTHREADS];
+
+
+void my_thread_init()
+{
+	int i;
+	scheduler = 0;
+	number_thread = 0;
+	
+	for (i = 0; i < NTHREADS; i++){
+		threads_checked[i] = 0;
+	}
+}
+
 /*
  * creacion del hilo principal e inserccion en la cola
  */
 static int __mythread_add_main_tcb()
 {
-	DEBUG_PRINTF("add_main_tcb: Creating node for Main thread \n");
+	//DEBUG_PRINTF("add_main_tcb: Creating node for Main thread \n");
 	main_tcb = (mythread_private_t *) malloc(sizeof(mythread_private_t));
 	if (main_tcb == NULL) {
 		ERROR_PRINTF("add_main_tcb: Error allocating memory for main node\n");
@@ -44,6 +62,9 @@ static int __mythread_add_main_tcb()
 	main_tcb->start_func = NULL;
 	main_tcb->args = NULL;
 	main_tcb->state = READY;
+	main_tcb->id = number_thread++;
+	printf("numero de hilos %i\n", number_thread);
+	main_tcb->priority = -1;
 	main_tcb->returnValue = NULL;
 	main_tcb->blockedForJoin = NULL;
 
@@ -63,7 +84,7 @@ static int __mythread_add_main_tcb()
  */
 int mythread_create(mythread_t * new_thread_ID,
 		    mythread_attr_t * attr,
-		    void *(*start_func) (void *), void *arg)
+		    void *(*start_func) (void *), void *arg, int priority_A)
 {
 	//puntero de la pila usado por el proceso hijo (creado por clone)
 	char *child_stack;
@@ -85,7 +106,7 @@ int mythread_create(mythread_t * new_thread_ID,
 		//se inicializa el mutex de manera global
 		my_mutex_init(&gfutex, 1);
 		//se crea el hilo idle
-		mythread_create(&idle_u_tcb, NULL, mythread_idle, NULL);
+		mythread_create(&idle_u_tcb, NULL, mythread_idle, NULL, priority_A);
 	}
 
 	// tomado de http://foro.elhacker.net/programacion_cc-b49.0/
@@ -119,6 +140,9 @@ int mythread_create(mythread_t * new_thread_ID,
 	new_node->start_func = start_func;
 	new_node->args = arg;
 	new_node->state = READY;
+	new_node->id = number_thread++;
+	printf("numero de hilos %i\n", number_thread);
+	new_node->priority = priority_A;
 	new_node->returnValue = NULL;
 	new_node->blockedForJoin = NULL;
 	//mutex del tcb inicializado en 0
@@ -171,7 +195,22 @@ void mythread_end(void *return_val)
 	if (self_ptr->blockedForJoin != NULL)
 		self_ptr->blockedForJoin->state = READY;
 
-	my_thread_detach(self_ptr);
+	//my_thread_detach(self_ptr);
+	switch (scheduler){
+		case 0:
+			my_thread_detach_FIFO(self_ptr);
+			break;
+		case 1:
+			break;
+		case 2:
+			my_thread_detach_Lottery(self_ptr);
+			break;
+		case 3:
+			break;
+		default:
+			ERROR_PRINTF("Problems with the scheduler \n");
+			exit(0);
+	}
 
 	__mythread_do_exit();
 
@@ -284,17 +323,95 @@ mythread_private_t *__mythread_selfptr()
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //funcion para detach
+//se hace varios detach, uno por cada scheduler
 
  /*
   * Busca por el mejor hilo adecuado que este READY para ejecutarlo
   */
-int my_thread_detach(mythread_private_t * node)
+int my_thread_detach_Lottery(mythread_private_t * node)
+{
+	mythread_private_t *ptr = node->next;
+	//este blucle siempre se termina porque el hilo IDLE siempre esta READY
+	int b;
+	b = rand() % 11;
+	while (b > 0) {
+		ptr = ptr->next;
+		b--;
+	}
+	while (ptr->state != READY){
+
+		ptr = ptr->next;
+	}
+	//si ningun otro esta en ready, entonces no se hace nada
+	if (ptr == node){
+		return -1;
+	}else {
+		//DEBUG_PRINTF("Dispatcher: Wake-up:%ld Sleep:%ld %d %d\n",(unsigned long)ptr->tid, (unsigned long)node->tid,ptr->sched_mutex.count, ptr->state);
+
+		//despierta el hilo "target_thread"
+		mutex_up(&ptr->sched_mutex);
+
+		//DEBUG_PRINTF("Dispatcher: Woken up:%ld, to %d\n",(unsigned long)ptr->tid, ptr->sched_mutex.count);
+		
+		return 0;
+	}
+}
+
+/*
+  * Busca por el mejor hilo adecuado que este READY para ejecutarlo
+  */
+int my_thread_detach_FIFO(mythread_private_t * node)
 {
 	mythread_private_t *ptr = node->next;
 	//este blucle siempre se termina porque el hilo IDLE siempre esta READY
 	while (ptr->state != READY){
+		//fifo
 		ptr = ptr->next;
+		
 	}
+	//si ningun otro esta en ready, entonces no se hace nada
+	if (ptr == node){
+		return -1;
+	}else {
+		//DEBUG_PRINTF("Dispatcher: Wake-up:%ld Sleep:%ld %d %d\n",(unsigned long)ptr->tid, (unsigned long)node->tid,ptr->sched_mutex.count, ptr->state);
+
+		//despierta el hilo "target_thread"
+		mutex_up(&ptr->sched_mutex);
+
+		//DEBUG_PRINTF("Dispatcher: Woken up:%ld, to %d\n",(unsigned long)ptr->tid, ptr->sched_mutex.count);
+		
+		return 0;
+	}
+}
+
+/*
+  * Busca por el mejor hilo adecuado que este READY para ejecutarlo
+  * algoritmo de tiempo real, por prioridad
+  */
+int my_thread_detach_RT(mythread_private_t * node)
+{
+	mythread_private_t *ptr = node->next;
+	int priority_A = 0;
+	mythread_private_t *aux = NULL;
+	//printf("pid = %i\n", node->tid);
+	printf("numero de hilos %i\n", number_thread);
+	while (ptr->tid != node->tid){
+		//printf("hola %i\n", ptr->tid);
+		if (threads_checked[ptr->id] == 0) {
+			if (ptr->priority >= priority_A) {
+				priority_A = ptr->priority;
+				aux = ptr;
+			}
+		}
+		ptr = ptr->next;
+		
+	}
+	//printf("pid = %i\n", ptr->tid);
+	ptr = aux;
+	threads_checked[ptr->id] = 1;
+	//printf("pid = %i\n", ptr->tid);
+	//printf("priridad = %i\n", ptr->priority);
+	
 	//si ningun otro esta en ready, entonces no se hace nada
 	if (ptr == node){
 		return -1;
@@ -330,7 +447,26 @@ int mythread_yield()
 	//el mutex es global para evitar carreras y deadblocks
 	mutex_down(&gfutex);
 
-	retval = my_thread_detach(self);
+	//retval = my_thread_detach(self);
+	
+	switch (scheduler){
+		case 0:
+			retval = my_thread_detach_FIFO(self);
+			break;
+		case 1:
+			break;
+		case 2:
+			retval = my_thread_detach_Lottery(self);
+			break;
+		case 3:
+			retval = my_thread_detach_RT(self);
+			break;
+		default:
+			ERROR_PRINTF("Problems with the scheduler \n");
+			exit(0);
+	}
+
+
 	//si no hay mas hilos aparte del principal, no se hace nada
 	if (retval == -1) {
 		mutex_up(&gfutex);
@@ -349,4 +485,34 @@ int mythread_yield()
 	mutex_down(&self->sched_mutex);
 
 	return 0;
+}
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+int my_thread_chsched(int sched)
+{
+	scheduler = sched;
+	switch (sched){
+		case 0:
+			LOG_PRINTF("Changed Scheduler to FIFO\n");
+			break;
+		case 1:
+			scheduler = 0;//se pone esta linea porque aun no hay algoritmo designado
+			LOG_PRINTF("Changed Scheduler to Round Robin\n");
+			break;
+		case 2:
+			LOG_PRINTF("Changed Scheduler to Lottery\n");
+			break;
+		case 3:
+			LOG_PRINTF("Changed Scheduler to Real Time\n");
+			break;
+		default:
+			ERROR_PRINTF("Incorrect option, possible options 0 - 3 \n");
+			exit(0);
+			return 1;
+		
+	}
+	
+	return 0;
+	
 }

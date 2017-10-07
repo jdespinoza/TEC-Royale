@@ -15,6 +15,8 @@
 #define BLOCKED 2 //esperando unirse
 #define DEFUNCT 3 //muerto
 
+#define NTHREADS	50 //numero maximo de hilos
+
 typedef struct mythread_attr {
 	//valor por defecto: SIGSTKSZ
 	unsigned long stackSize;
@@ -30,7 +32,11 @@ typedef struct mythread {
 typedef struct mythread_private {
 
 	pid_t tid; 				
-	int state; 				
+	int state;
+	//solo se usa en el algortimo de tiempo real, ubicacion del arreglo del algortimo 		
+	int id;
+	//solo se usa en el algoritmo de tiempo real, si es igual a -1, es porque no tiene prioridad
+	int priority;
 	//funcion donde esta asignado el hilo
 	void * (*start_func) (void *);
 	//argumentos de la funcion
@@ -55,13 +61,23 @@ mythread_t mythread_self(void);
 int mythread_create(mythread_t *new_thread_ID,
 					mythread_attr_t *attr,
 					void * (*start_func)(void *),
-					void *arg);
+					void *arg,
+					int priority_A);
 
 /*
  * cambia de un hilo ejecutandose a otro que este listo para ejecutarse (READY)
  */
 int mythread_yield(void);
 
+/*
+ * cambia de algoritmo de scheduling
+ */
+int my_thread_chsched(int sched);
+
+/*
+ * inicializa variables globales
+ */
+void my_thread_init();
 
 /*
  * suspende la llamada del hilo si el hilo actual no ha terminado,
@@ -79,7 +95,11 @@ pid_t __mythread_gettid();
 
 mythread_private_t *__mythread_selfptr();
 
-int my_thread_detach(mythread_private_t *);
+int my_thread_detach_FIFO(mythread_private_t *);
+
+int my_thread_detach_Lottery(mythread_private_t *);
+
+int my_thread_detach_RT(mythread_private_t *);
 
 void __mythread_debug_futex_init();
 

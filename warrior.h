@@ -136,3 +136,5 @@ Deck *create_Node();
 int create_deck();
 
 void deck_print();
+
+int boot;

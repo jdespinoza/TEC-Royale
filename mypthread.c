@@ -63,7 +63,7 @@ static int __mythread_add_main_tcb()
 	main_tcb->args = NULL;
 	main_tcb->state = READY;
 	main_tcb->id = number_thread++;
-	printf("numero de hilos %i\n", number_thread);
+	//printf("numero de hilos %i\n", number_thread);
 	main_tcb->priority = -1;
 	main_tcb->returnValue = NULL;
 	main_tcb->blockedForJoin = NULL;
@@ -141,7 +141,7 @@ int mythread_create(mythread_t * new_thread_ID,
 	new_node->args = arg;
 	new_node->state = READY;
 	new_node->id = number_thread++;
-	printf("numero de hilos %i\n", number_thread);
+	//printf("numero de hilos %i\n", number_thread);
 	new_node->priority = priority_A;
 	new_node->returnValue = NULL;
 	new_node->blockedForJoin = NULL;
@@ -394,7 +394,7 @@ int my_thread_detach_RT(mythread_private_t * node)
 	int priority_A = 0;
 	mythread_private_t *aux = NULL;
 	//printf("pid = %i\n", node->tid);
-	printf("numero de hilos %i\n", number_thread);
+	//printf("numero de hilos %i\n", number_thread);
 	while (ptr->tid != node->tid){
 		//printf("hola %i\n", ptr->tid);
 		if (threads_checked[ptr->id] == 0) {

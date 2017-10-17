@@ -15,7 +15,7 @@
 #define BLOCKED 2 //esperando unirse
 #define DEFUNCT 3 //muerto
 
-#define NTHREADS	50 //numero maximo de hilos
+#define NTHREADS	8 //numero maximo de hilos
 
 typedef struct mythread_attr {
 	//valor por defecto: SIGSTKSZ

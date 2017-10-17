@@ -26,7 +26,13 @@ void deck_print(){
 	printf("\n");
 	for (i = 0; i < HAND; i++) {
 		printf("║");
-		printf("Ataque: %i   ║ Vida:  %i  ", aux2->warrior_deck->atk, aux2->warrior_deck->life);
+		if (aux2->warrior_deck->atk < 10 && aux2->warrior_deck->life < 10){
+			printf("Ataque: %i   ║ Vida:  %i  ", aux2->warrior_deck->atk, aux2->warrior_deck->life);
+		}else if (aux2->warrior_deck->atk >= 10){
+			printf("Ataque: %i  ║ Vida:  %i  ", aux2->warrior_deck->atk, aux2->warrior_deck->life);
+		}else{
+			printf("Ataque: %i   ║ Vida:  %i ", aux2->warrior_deck->atk, aux2->warrior_deck->life);
+		}
 		printf("║ ");
 		aux2 = aux2->next;
 	}

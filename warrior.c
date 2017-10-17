@@ -5,9 +5,16 @@
 #include <string.h>
 #include <mypthread.h>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #include "warrior.h"
 #include "kbhit.h"
+
 //#include "deck.h"
+
+char buffer[1024];
 
 //Se debe de dar la configuracion desde un archivo .ini por mientras se hace asi
 Gigante *create_gigante(){
@@ -279,6 +286,18 @@ int move_warrior_t_help(int i, int j){
 	return 0;
 }
 
+int move_warrior_t_bridge(int i, int j){
+	if (BRIDGE_N_X == i && BRIDGE_N_Y == j){
+		strcpy(buffer,"Puente\n");
+		return 1;
+	}else if (BRIDGE_S_X == i && BRIDGE_S_Y ==j){
+		strcpy(buffer,"Puente\n");
+		return 1;
+	}
+	strcpy(buffer,"Hello World\n");
+	return 0;
+}
+
 void move_warrior_t(){
 	int aux;
 	for (int i = 0; i < ROW; i++){
@@ -295,6 +314,8 @@ void move_warrior_t(){
 						battlefield[i+1][j]->status = 'v';
 					}
 					battlefield[i][j] = NULL;
+				}else if (move_warrior_t_bridge(i, j)) {
+					continue;
 				}else{
 					if (!battlefield[i][j]->flag){
 						if (battlefield[i][j]->status == '^'){
@@ -308,6 +329,48 @@ void move_warrior_t(){
 								j++;
 							}
 							battlefield[i][j] = NULL;
+						}else if (battlefield[i][j]->status == '<'){
+							//validar choque con torres y ataques
+							if(j > POS_Y){
+								
+								aux = j - move_warrior_t_help(i, j-1);
+								if(aux != j){
+									battlefield[i][aux]->life = battlefield[i][aux]->life - battlefield[i][j]->atk;
+									//if (battlefield[i][aux]->life <= 0){
+										//battlefield[i][aux] = NULL;
+									//}
+									battlefield[i][aux-1] = battlefield[i][j];
+									battlefield[i][aux-1]->flag = 1;
+									battlefield[i][j] = NULL;
+								}else if(battlefield[i][j-1] != NULL){
+									battlefield[i][j-1]->life = battlefield[i][j-1]->life - battlefield[i][j]->atk;
+									battlefield[i][j]->life = battlefield[i][j]->life - battlefield[i][j-1]->atk;
+									if (battlefield[i][j-1]->life <= 0){
+										battlefield[i][j-1] = NULL;
+									}
+									if (battlefield[i][j]->life <= 0) {
+										battlefield[i][j] = NULL;
+									}
+									battlefield[i][j] = NULL;
+								}else{
+									battlefield[i][j-1] = battlefield[i][j];
+									battlefield[i][j-1]->flag = 1;
+									battlefield[i][j] = NULL;
+								}
+								
+								j--;
+							}else{
+								if (i == 4){
+									battlefield[i][j]->status = 'v';
+									battlefield[i+1][j] = battlefield[i][j];
+									battlefield[i+1][j]->flag = 1;
+								}else{
+									battlefield[i][j]->status = '^';
+									battlefield[i-1][j] = battlefield[i][j];
+									battlefield[i-1][j]->flag = 1;
+								}
+								battlefield[i][j] = NULL;
+							}
 						}else if (battlefield[i][j]->status == '>'){
 							//validar choque con torres y ataques
 							aux = j + move_warrior_t_help(i, j+1);
@@ -316,12 +379,6 @@ void move_warrior_t(){
 							battlefield[i][j] = NULL;
 							j = aux;
 							j++;
-						}else if (battlefield[i][j]->status == '<'){
-							//validar choque con torres y ataques
-							battlefield[i][j-1] = battlefield[i][j];
-							battlefield[i][j-1]->flag = 1;
-							battlefield[i][j] = NULL;
-							j--;
 						}else if (battlefield[i][j]->status == 'v'){
 							if (i < 25){
 								battlefield[i+1][j] = battlefield[i][j];
@@ -341,13 +398,128 @@ void move_warrior_t(){
 	}
 }
 
-int aux(){
+
+
+int client_aux(){
+  int clientSocket;
+  
+  struct sockaddr_in serverAddr;
+  socklen_t addr_size;
+
+  /*---- Create the socket. The three arguments are: ----*/
+  /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
+  clientSocket = socket(PF_INET, SOCK_STREAM, 0);
+  
+  /*---- Configure settings of the server address struct ----*/
+  /* Address family = Internet */
+  serverAddr.sin_family = AF_INET;
+  /* Set port number, using htons function to use proper byte order */
+  serverAddr.sin_port = htons(7891);
+  /* Set IP address to localhost */
+  serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+  /* Set all bits of the padding field to 0 */
+  memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);  
+
+  /*---- Connect the socket to the server using the address struct ----*/
+  addr_size = sizeof serverAddr;
+  
+  
+	connect(clientSocket, (struct sockaddr *) &serverAddr, addr_size);
+  /*---- Read the message from the server into the buffer ----*/
+  /*---- Send message to the socket of the incoming connection ----*/
+  
+	send(clientSocket,buffer,13,0);  
+  return 0;	
+	
+}
+
+void *jason_hilo(void *arg){
+	while(1){
+		client_aux();
+		mythread_yield();
+	}
+	return NULL;
+}
+
+void *server_aux(void *arg){
+  int welcomeSocket, newSocket;
+  char buffer[1024];
+  struct sockaddr_in serverAddr;
+  struct sockaddr_storage serverStorage;
+  socklen_t addr_size;
+
+  /*---- Create the socket. The three arguments are: ----*/
+  /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
+  welcomeSocket = socket(PF_INET, SOCK_STREAM, 0);
+  
+  /*---- Configure settings of the server address struct ----*/
+  /* Address family = Internet */
+  serverAddr.sin_family = AF_INET;
+  /* Set port number, using htons function to use proper byte order */
+  serverAddr.sin_port = htons(7891);
+  /* Set IP address to localhost */
+  serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+  /* Set all bits of the padding field to 0 */
+  memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);  
+
+  /*---- Bind the address struct to the socket ----*/
+  bind(welcomeSocket, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
+
+  /*---- Listen on the socket, with 5 max connection requests queued ----*/
+  if(listen(welcomeSocket,5)==0)
+    printf("Listening\n");
+  else
+    printf("Error\n");
+
+  /*---- Accept call creates a new socket for the incoming connection ----*/
+  addr_size = sizeof serverStorage;
+  
+
+  while (1){
+	  newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
+	   /*---- Read the message from the server into the buffer ----*/
+	  recv(newSocket, buffer, 1024, 0);
+
+  /*---- Print the received message ----*/
+	  printf("Data received: %s",buffer);  
+	  //jason = 1234;
+	  mythread_yield();
+
+  }
+  return NULL;
+}
+
+void *enemy(void *arg) {
+	Warrior_t *warrior_arr [10];
+	for (int i = 0; i < 10; i++) {
+		warrior_arr[i] = choose_warrior(i);
+		warrior_arr[i]->status = '<';
+		mythread_yield();
+	}
+	for (int j = 0; j < 10; j++) {
+		mythread_yield();
+		if(rand()%2){
+			battlefield[BRIDGE_N_X][BRIDGE_N_Y-1] = warrior_arr[j];
+		}else{
+			battlefield[BRIDGE_S_X][BRIDGE_S_Y-1] = warrior_arr[j];
+		}
+		mythread_yield();
+	}
+	
+	mythread_end(NULL);
+	return NULL;
+	
+}
+
+void *aux(void *arg){
 	
 	//mythread_t threads[NTHREADS];
 	//my_thread_init();
 	
 	//rutina para insertar
-	init_keyboard();
+	if(!boot){
+		init_keyboard();
+	}
 	battlefield_init();
 	battlefield_complete();
 	//Valquiria *v = create_valquiria();
@@ -363,6 +535,8 @@ int aux(){
 	system("clear");
 	char card;
 	Warrior_t *new_warrior;
+	int time_boot = 2;
+	int card_boot;
 	//int card, x, y;
 	//Move_t *move = calloc(1, sizeof(Move_t));
 	//int num_threads = 0;
@@ -371,14 +545,24 @@ int aux(){
 	while(1){
 		battlefield_print();
 		deck_print();
-		if (kbhit() == 1) {
-			card = readch();
-			if (card == 'q' || card == 'Q') {
-				close_keyboard();
-				exit(0);
+		if(!boot){
+			if (kbhit() == 1) {
+				card = readch();
+				if (card == 'q' || card == 'Q') {
+					close_keyboard();
+					exit(0);
+				}
+				new_warrior = choose_card(card-48);
+				battlefield_insert(POS_X,POS_Y,new_warrior); 
 			}
-			new_warrior = choose_card(card-48);
-			battlefield_insert(POS_X,POS_Y,new_warrior); 
+		}else{
+			time_boot++;
+			if (time_boot == 3){
+				time_boot = 0;
+				card_boot = (rand()%5)+1;
+				new_warrior = choose_card(card_boot);
+				battlefield_insert(POS_X,POS_Y,new_warrior);
+			} 
 		}
 		usleep(500000);
 		reset_warrior();
@@ -397,10 +581,14 @@ int aux(){
 		//mythread_create(&threads[num_threads], NULL, move_warrior, move, 4);
 		//mythread_join(threads[num_threads], (void **)&status);
 		//num_threads++;
+		
+		//printf("\n%i", jason);
 		system("clear");
+		mythread_yield();
+		
 
 	}
-	return 0;
+	return NULL;
 }
 
 int main () {
@@ -436,6 +624,35 @@ int main () {
 		printf("%c ", deck[i]->class);
 	}
 	*/
-	aux();
+	
+	strcpy(buffer,"Hello World\n");
+	printf("Boot? ");
+	scanf("%i", &boot);
+	printf("\n");
+	
+	mythread_t threads[NTHREADS];
+	int count[NTHREADS];
+	int i;
+	char *status;
+	
+	my_thread_init();
+	
+	mythread_create(&threads[0], NULL, jason_hilo, &count[0], 8);
+	
+	mythread_create(&threads[1], NULL, aux, &count[0], 6);
+	
+	mythread_create(&threads[2], NULL, enemy, &count[0], 6);
+	
+	my_thread_chsched(0);
+	
+	for (i = 0; i < 3; i++) {
+		LOG_PRINTF("Main: Will now wait for thread %ld. Yielding..\n", (unsigned long)threads[i].tid);
+		mythread_join(threads[i], (void **)&status);
+		LOG_PRINTF("Main: Thread %ld exited and increment count to %d\n", (unsigned long)threads[i].tid, count[i]);
+	}
+	LOG_PRINTF("Main: All threads completed execution. Will now exit..\n");
+	mythread_end(NULL);
+	
+	//aux();
 	return 0;
 }

@@ -3,7 +3,7 @@ INC = mutex.h  mutex_inline.h  mutex_assam.h  mypthread.h  mypthread_queue.h kbh
 OBJS = $(SRCS:.c=.o)
 TEST_SRCS = ejemplo.c
 TEST_OBJS = $(TEST_SRCS:.c=.o)
-DEBUG=0
+#DEBUG=0
 
 CFLAGS = -Wall -Werror -I. -g
 LDFLAGS = -L.
@@ -12,9 +12,9 @@ LIB = libmythread.a
 AR = /usr/bin/ar
 CC = gcc
 
-ifeq ($(DEBUG),1)
-EXTRA_CFLAGS += -DDEBUG
-endif
+#ifeq ($(DEBUG),1)
+#EXTRA_CFLAGS += -DDEBUG
+#endif
 
 .PHONY: all lib clean tags test a5
 a5:  all

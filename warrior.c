@@ -640,7 +640,7 @@ int main (int argc, char **argv) {
 	}
 	
 	strcpy(buffer,"Hello World\n");
-	printf("Boot? ");
+	printf("Bot? ");
 	scanf("%i", &boot);
 	printf("\n");
 	

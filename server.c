@@ -1,94 +1,52 @@
-// Ficheros de cabecera
+/****************** SERVER CODE ****************/
+
 #include <stdio.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
-#include <unistd.h>
-#include "net.h"
- 
-//Funcion principal
-/*int server(int puerto_aux){
-	//Definir variables,estructuras
-	struct sockaddr_in server;
-	struct sockaddr_in client;
-	int fd,fd2,longitud_cliente,numbytes,puerto;
-	char buf[1024]; //Para recibir mensaje
-	char enviar2[1024]; //Para enviar mensaje
-	char enviar[1024]; //Para enviar mensaje
- 
-	system("clear");
-	//printf("La direccion del servidor es 127.0.0.1\n\n");
-	//printf("Por favor introduzca el puerto de escucha: \n\n");
-	//scanf("%d",&puerto);
-	puerto = puerto_aux;
-	server.sin_family= AF_INET;
-	server.sin_port = htons(puerto);
-	server.sin_addr.s_addr = INADDR_ANY;
-	bzero(&(server.sin_zero),8);
- 
-	//Definicion de socket
-	if (( fd=socket(AF_INET,SOCK_STREAM,0) )<0){
-		perror("Error de apertura de socket");
-		exit(-1);
-	}
- 
-	//Avisar al sistema que se creo un socket
-	if(bind(fd,(struct sockaddr*)&server, sizeof(struct sockaddr))==-1) {
-		printf("error en bind() \n");
-		exit(-1);
-	}
- 
-	//Establecer el socket en modo escucha
-	if(listen(fd,5) == -1) {
-		printf("error en listen()\n");
-		exit(-1);
-	}
- 
-	printf("SERVIDOR EN ESPERA...\n");
-	longitud_cliente= sizeof(struct sockaddr_in);
-	if ((fd2 = accept(fd,(struct sockaddr *)&client,&longitud_cliente))==-1) {
-		printf("error en accept()\n");
-		exit(-1);
-	}
- 
-	printf("------SESION INICIADA------\n");
-	printf("CLIENTE CONECTADO\n");
-	strcpy(enviar,"SERVIDOR CONECTADO...");
-	send(fd2, enviar, 1024,0);
-	usleep(5000000);
-	//Ciclo para enviar y recibir mensajes
-	while(1){
-	//El servidor espera el primer mensaje
-		if(flag_net == 1) {
-			recv(fd2,buf,1024,0);
-			buff_atk = buf;
-			//if(strcmp(&buf,"salir")==0){
-				//break;
-			//}
-			//printf("Cliente: %s\n",buf);
-		}
-		//El cliente recibe el mensaje del servidor
-		/*printf("Escribir mensaje: ");
-		scanf("%*c%[^\n]",enviar2);
-		send(fd2,enviar2,1024,0);
-		if(strcmp(enviar2,"salir")==0){
-			break;
-		}*//*
-	}
-	close(fd2);
-	close(fd);
-	return 0;
-}
-*/
-int server_recv(){
-	recv(fd2,buf,1024,0);
-	buff_atk = buf;
-	return 0;
-}
 
-int server_close(){
-	close(fd2);
-	close(fd);
-	return 0;
+int main(){
+  int welcomeSocket, newSocket;
+  char buffer[1024];
+  struct sockaddr_in serverAddr;
+  struct sockaddr_storage serverStorage;
+  socklen_t addr_size;
+
+  /*---- Create the socket. The three arguments are: ----*/
+  /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
+  welcomeSocket = socket(PF_INET, SOCK_STREAM, 0);
+  
+  /*---- Configure settings of the server address struct ----*/
+  /* Address family = Internet */
+  serverAddr.sin_family = AF_INET;
+  /* Set port number, using htons function to use proper byte order */
+  serverAddr.sin_port = htons(7891);
+  /* Set IP address to localhost */
+  serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+  /* Set all bits of the padding field to 0 */
+  memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);  
+
+  /*---- Bind the address struct to the socket ----*/
+  bind(welcomeSocket, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
+
+  /*---- Listen on the socket, with 5 max connection requests queued ----*/
+  if(listen(welcomeSocket,5)==0)
+    printf("Listening\n");
+  else
+    printf("Error\n");
+
+  /*---- Accept call creates a new socket for the incoming connection ----*/
+  addr_size = sizeof serverStorage;
+  
+
+  while (1){
+	  newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
+	   /*---- Read the message from the server into the buffer ----*/
+	  recv(newSocket, buffer, 1024, 0);
+
+  /*---- Print the received message ----*/
+	  printf("Data received: %s",buffer);   
+
+  }
+  return 0;
 }

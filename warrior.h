@@ -138,3 +138,5 @@ int create_deck();
 void deck_print();
 
 int boot;
+
+char *lista[50];

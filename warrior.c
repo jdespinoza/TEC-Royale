@@ -17,15 +17,43 @@
 char buffer[1024];
 
 //Se debe de dar la configuracion desde un archivo .ini por mientras se hace asi
+void leer(){
+	  FILE *archivo;
+  char caracteres[100];
+  
+  int i = 0;
+  archivo = fopen("configuracion.ini","r");
+ 	if (archivo == NULL)
+ 		exit(1);
+ 	else
+        {
+ 	    while (fgets(caracteres,100,archivo) != NULL)
+ 	    {
+          char* token = strtok(caracteres, "=");
+          token = strtok(NULL, "=");
+          if(token != NULL){
+            lista[i] = malloc(strlen(token) * sizeof(char));
+            strcpy(lista[i], token);
+            i++;
+          }
+ 	    }
+
+        }
+    fclose(archivo);
+	
+}
+
 Gigante *create_gigante(){
+	
+
 
     Gigante *gigante = calloc(1, sizeof(Gigante));
-    
-    gigante->class = 'G';
-    gigante->scheduler = 'R';//round robin
-    gigante->atk = 2;
-    gigante->life = 8;
-    gigante->level = G_LVL;
+
+    gigante->class = lista[0][0];
+    gigante->scheduler = lista[1][0];//round robin
+    gigante->atk = lista[2][0]-48;
+    gigante->life = lista[3][0]-48;
+    gigante->level = lista[4][0]-48;
 
     return gigante;
 
@@ -35,11 +63,11 @@ Valquiria *create_valquiria(){
 
     Valquiria *valquiria = calloc(1, sizeof(Valquiria));
 
-    valquiria->class = 'V';
-    valquiria->scheduler = 'S';//sorteo
-    valquiria->atk = 6;
-    valquiria->life = 4;
-    valquiria->level = V_LVL;
+      valquiria->class = lista[5][0];
+      valquiria->scheduler = lista[6][0];
+      valquiria->atk = lista[7][0]-48;
+      valquiria->life = lista[8][0]-48;
+      valquiria->level = lista[9][0]-48;
 
     return valquiria;
 
@@ -49,11 +77,11 @@ Bombardero *create_bombardero(){
 
     Bombardero *bombardero = calloc(1, sizeof(Bombardero));
 
-    bombardero->class = 'B';
-    bombardero->scheduler = 'S';//sorteo
-    bombardero->atk = 4;
-    bombardero->life = 1;
-    bombardero->level = B_LVL;
+      bombardero->class = lista[10][0];
+      bombardero->scheduler = lista[11][0];
+      bombardero->atk = lista[12][0]-48;
+      bombardero->life = lista[13][0]-48;
+      bombardero->level = lista[14][0]-48;
 
     return bombardero;
 
@@ -63,11 +91,11 @@ Caballero *create_caballero(){
 
     Caballero *caballero = calloc(1, sizeof(Caballero));
 
-    caballero->class = 'C';
-    caballero->scheduler = 'S';//sorteo
-    caballero->atk = 5;
-    caballero->life = 5;
-    caballero->level = C_LVL;
+      caballero->class = lista[15][0];
+      caballero->scheduler = lista[16][0];
+      caballero->atk = lista[17][0]-48;
+      caballero->life = lista[18][0]-48;
+      caballero->level = lista[19][0]-48;
 
     return caballero;
 
@@ -77,11 +105,11 @@ Esbirro *create_esbirro(){
 
     Esbirro *esbirro = calloc(1, sizeof(Esbirro));
 
-    esbirro->class = 'E';
-    esbirro->scheduler = 'S';//sorteo
-    esbirro->atk = 4;
-    esbirro->life = 3;
-    esbirro->level = E_LVL;
+      esbirro->class = lista[20][0];
+      esbirro->scheduler = lista[21][0];
+      esbirro->atk = lista[22][0]-48;
+      esbirro->life = lista[23][0]-48;
+      esbirro->level = lista[24][0]-48;
 
     return esbirro;
 
@@ -91,11 +119,11 @@ Duende *create_duende(){
 
     Duende *duende = calloc(1, sizeof(Duende));
 
-    duende->class = 'L';
-    duende->scheduler = 'S';//sorteo
-    duende->atk = 2;
-    duende->life = 2;
-    duende->level = L_LVL;
+      duende->class = lista[25][0];
+      duende->scheduler = lista[26][0];
+      duende->atk = lista[27][0]-48;
+      duende->life = lista[28][0]-48;
+      duende->level = lista[29][0]-48;
 
     return duende;
 
@@ -105,11 +133,11 @@ Principe *create_principe(){
 
     Principe *principe = calloc(1, sizeof(Principe));
 
-    principe->class = 'P';
-    principe->scheduler = 'S';//sorteo
-    principe->atk = 9;
-    principe->life = 6;
-    principe->level = P_LVL;
+      principe->class = lista[30][0];
+      principe->scheduler = lista[31][0];
+      principe->atk = lista[32][0]-48;
+      principe->life = lista[33][0]-48;
+      principe->level = lista[34][0]-48;
 
     return principe;
 
@@ -119,11 +147,11 @@ Montapuerco *create_montapuerco(){
 
     Montapuerco *montapuerco = calloc(1, sizeof(Montapuerco));
 
-    montapuerco->class = 'K';
-    montapuerco->scheduler = 'S';//sorteo
-    montapuerco->atk = 6;
-    montapuerco->life = 4;
-    montapuerco->level = K_LVL;
+      montapuerco->class = lista[35][0];
+      montapuerco->scheduler = lista[36][0];
+      montapuerco->atk = lista[37][0]-48;
+      montapuerco->life = lista[38][0]-48;
+      montapuerco->level = lista[39][0]-48;
 
     return montapuerco;
 
@@ -133,11 +161,11 @@ Dragon *create_dragon(){
 
     Dragon *dragon = calloc(1, sizeof(Dragon));
 
-    dragon->class = 'D';
-    dragon->scheduler = 'S';//sorteo
-    dragon->atk = 8;
-    dragon->life = 7;
-    dragon->level = D_LVL;
+	  dragon->class = lista[40][0];
+      dragon->scheduler = lista[41][0];
+      dragon->atk = lista[42][0]-48;
+      dragon->life = lista[43][0]-48;
+      dragon->level = lista[44][0]-48;
 
     return dragon;
 
@@ -147,42 +175,44 @@ Mago *create_mago(){
 
     Mago *mago = calloc(1, sizeof(Mago));
 
-    mago->class = 'M';
-    mago->scheduler = 'S';//sorteo
-    mago->atk = 9;
-    mago->life = 6;
-    mago->level = M_LVL;
+	mago->class = lista[45][0];
+	mago->scheduler = lista[46][0];
+	mago->atk = lista[47][0]-48;
+	mago->life = lista[48][0]-48;
+	mago->level = lista[49][0]-48;
 
     return mago;
 
 }
 
 Warrior_t *choose_warrior(int i){
-	switch (i){
-		case 0:
-			return create_gigante();
-		case 1:
-			return create_valquiria();
-		case 2:
-			return create_bombardero();
-		case 3:
-			return create_caballero();
-		case 4:
-			return create_esbirro();
-		case 5:
-			return create_duende();
-		case 6:
-			return create_principe();
-		case 7:
-			return create_montapuerco();
-		case 8:
-			return create_dragon();
-		case 9:
-			return create_mago();
-	
-	}
-	return 0;
+		leer();
+        switch (i){
+                case 0:
+                        return create_gigante();
+                case 1:
+                        return create_valquiria();
+                case 2:
+                        return create_bombardero();
+                case 3:
+                        return create_caballero();
+                case 4:
+                        return create_esbirro();
+                case 5:
+                        return create_duende();
+                case 6:
+                        return create_principe();
+                case 7:
+                        return create_montapuerco();
+                case 8:
+                        return create_dragon();
+                case 9:
+                        return create_mago();
+
+        }
+        return 0;
 }
+
 
 int choose_lvl(char class){
 	switch (class){
@@ -591,42 +621,26 @@ void *aux(void *arg){
 	return NULL;
 }
 
-int main () {
-	//rutina para insertar en el tablero
+int main (int argc, char **argv) {
 	
-	/*battlefield_init();
-	Valquiria *v = create_valquiria();
-	battlefield_insert(0,3,v); 
-	battlefield_print();
-	
-	//rutina para crear el deck
-	srand (time(NULL)); 
-	lvl_init();
-	deck_init();
-	create_deck();
-	deck_print();
-	system("clear");
-	char tecla;
-	while(1){
-		battlefield_print();
-		deck_print();
-		//if (kbhit() == 1) {
-			//tecla = readch();
-			//printf("holaaaaa: %c\n", tecla);
-		//}
-		usleep(500000);
-		system("clear");
-
+	int c;
+	int c_flag = 0;
+	while ((c = getopt (argc, argv, "c:")) != -1){
+		switch (c){
+			case 'c':
+				c_flag = 1;
+				break;
+			default:
+				exit(0);
+		}
 	}
-	
-	
-	for (int i =0;i<DECK_LEN;i++){
-		printf("%c ", deck[i]->class);
+	if(!c_flag){
+		printf("Por favor escriba el comando -c [archivo]\n");
+		exit(0);
 	}
-	*/
 	
 	strcpy(buffer,"Hello World\n");
-	printf("Boot? ");
+	printf("Bot? ");
 	scanf("%i", &boot);
 	printf("\n");
 	

@@ -2,7 +2,7 @@
 ## Tecnologico de Costa Rica, sede Alajuela, Proyecto 1, Principios de sistemas operativos, II Semestre, 2017
 ## Estudiantes: Jason David Espinoza - 2015073934, Jose Miguel Hernandez - 2015079760
 
-### Version 1.3
+### Version Final
 * Se cuenta con todas las funcionalidades de la biblioteca mypthread, incluyendo 3 algoritmos diferentes de scheduling
 
 * Se crea el mazo de cartas con un algoritmo genetico, provocando que las nuevas cartas aumenten de nivel y sus atributos de batalla mejoren. Las primeras cartas son los guerreros basicos, siempren salen en el mismo orden
@@ -12,6 +12,12 @@
 * Los guerreros en el campo de batalla se moveran solos, buscando la torre enemiga
 
 * Siempre que se escoge un guerrero, este caera justo al frente de la torre principal, y el mismo guerrero decide hacia donde ir, si por el camino de arriba o por el camino de abajo
+
+* Se puede jugar contra un bot y tambien se puede que un bot pelee ontra otro bot
+
+* Lee el archivo llamado configuracion.ini el cual contiene la informacion de la configuracion general del juego
+
+* El juego se ejecuta con el siguiente comando $ tec-royal -c configuracion.ini
 
 ### Como jugar?
 De primera entrada vera el tablero con solo las torres y los puentes, y debajo del tablero estaran 5 cartas, para escoger una carta solo debe de presionar los numeros que van del 1 al 5, para escoger la carta correspondiente.

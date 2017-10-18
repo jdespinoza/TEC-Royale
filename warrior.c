@@ -621,39 +621,23 @@ void *aux(void *arg){
 	return NULL;
 }
 
-int main () {
-	//rutina para insertar en el tablero
+int main (int argc, char **argv) {
 	
-	/*battlefield_init();
-	Valquiria *v = create_valquiria();
-	battlefield_insert(0,3,v); 
-	battlefield_print();
-	
-	//rutina para crear el deck
-	srand (time(NULL)); 
-	lvl_init();
-	deck_init();
-	create_deck();
-	deck_print();
-	system("clear");
-	char tecla;
-	while(1){
-		battlefield_print();
-		deck_print();
-		//if (kbhit() == 1) {
-			//tecla = readch();
-			//printf("holaaaaa: %c\n", tecla);
-		//}
-		usleep(500000);
-		system("clear");
-
+	int c;
+	int c_flag = 0;
+	while ((c = getopt (argc, argv, "c:")) != -1){
+		switch (c){
+			case 'c':
+				c_flag = 1;
+				break;
+			default:
+				exit(0);
+		}
 	}
-	
-	
-	for (int i =0;i<DECK_LEN;i++){
-		printf("%c ", deck[i]->class);
+	if(!c_flag){
+		printf("Por favor escriba el comando -c [archivo]\n");
+		exit(0);
 	}
-	*/
 	
 	strcpy(buffer,"Hello World\n");
 	printf("Boot? ");

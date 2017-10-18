@@ -29,11 +29,11 @@ libmythread.a: $(OBJS) $(INC)
 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(TEST_OBJS) $(LIB) *~ mythread_test
+	rm -f $(OBJS) $(TEST_OBJS) $(LIB) *~ tec-royale
 
 tags:
 	find . -name "*.[cChH]" | xargs ctags
 	find . -name "*.[cChH]" | etags -
 
 test:	$(TEST_OBJS) $(INC) lib
-	$(CC) -o mythread_test $(CFLAGS) $(EXTRA_CFLAGS) $(TEST_OBJS) $(LIB)
+	$(CC) -o tec-royale $(CFLAGS) $(EXTRA_CFLAGS) $(TEST_OBJS) $(LIB)
